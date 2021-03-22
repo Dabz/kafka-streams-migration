@@ -16,6 +16,9 @@
  */
 package org.example;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -51,6 +54,14 @@ public class WordCount {
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         if (args.length > 0) {
             props.load(new FileInputStream(args[0]));
+        }
+
+        if (props.getProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG).contains("CCLOUD_CLUSTER")) {
+            String jaas = props.getProperty(SaslConfigs.SASL_JAAS_CONFIG);
+            jaas = jaas.replaceAll("CLUSTER_API_KEY", System.getenv("CLUSTER_API_KEY"));
+            jaas = jaas.replaceAll("CLUSTER_API_SECRET", System.getenv("CLUSTER_API_SECRET"));
+            props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, System.getenv("CCLOUD_CLUSTER"));
+            props.put(SaslConfigs.SASL_JAAS_CONFIG, jaas);
         }
 
         final StreamsBuilder builder = new StreamsBuilder();

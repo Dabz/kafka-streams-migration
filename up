@@ -9,11 +9,34 @@ docker-compose up -d zookeeper
 docker-compose up -d broker
 docker-compose up -d connect
 
-until curl -X 'POST' 'http://localhost:8083/connectors/' --data @connect/file-source-connector.json -H 'Content-Type:application/json'; do
+echo Waiting for Kafka Connect to be up and running
+until curl -s -f -X 'GET' 'http://localhost:8083/' ; do
+  echo -n "."
   sleep 5
 done
 echo
 
-curl -X 'POST' 'http://localhost:8083/connectors/' --data @connect/file-sink-connector.json -H 'Content-Type:application/json'
+echo Starting with hello world in data/source.txt
+echo "Hello world" > data/source.txt
+cat data/source.txt
 
+echo Creating file source connector reading from data/source.txt and sending lines to streams-plaintext-input
+curl -s -f -X 'POST' 'http://localhost:8083/connectors/' --data @connect/file-source-connector.json -H 'Content-Type:application/json' | jq .
+
+echo "" > data/sink.txt
+echo Creating file sink connector reading streams-wordcount-output topic and writing to data/sink.txt
+curl -s -f -X 'POST' 'http://localhost:8083/connectors/' --data @connect/file-sink-connector.json -H 'Content-Type:application/json' | jq .
+
+echo Launching EOS based kafka streams with states stores that counts words
 docker-compose up -d kafka-streams
+sleep 10
+
+echo Application will produce EOS results of counts
+cat data/sink.txt
+
+echo Sending World in data/source.txt
+echo World >> data/source.txt
+echo Waiting for processing
+sleep 2
+echo Let\'s look at the updates in data/sink.txt
+cat data/sink.txt

@@ -1,0 +1,7 @@
+**.idea
+**.git
+**target/
+**/*.iml
+data/sink.txt
+data/hsperfdata_appuser
+.ccloud

@@ -1,0 +1,21 @@
+{
+  "name": "replicator",
+  "config": {
+    "connector.class": "io.confluent.connect.replicator.ReplicatorSourceConnector",
+    "key.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
+    "value.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
+    "src.kafka.request.timeout.ms": "20000",
+    "src.kafka.bootstrap.servers": "broker:29092",
+    "dest.kafka.ssl.endpoint.identification.algorithm": "https",
+    "dest.kafka.sasl.mechanism": "PLAIN",
+    "dest.kafka.request.timeout.ms": "20000",
+    "dest.kafka.bootstrap.servers": "CCLOUD_CLUSTER",
+    "dest.kafka.retry.backoff.ms": "500",
+    "dest.kafka.sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"CLUSTER_API_KEY\" password=\"CLUSTER_API_SECRET\";",
+    "dest.kafka.security.protocol": "SASL_SSL",
+    "dest.topic.replication.factor": "3",
+    "topic.regex": "streams-.*",
+    "offset.topic.commit": true,
+    "dest.kafka.isolation.level": "read_committed"
+  }
+}

@@ -72,3 +72,59 @@ services:
     volumes:
       - ./kafka-streams-source-cluster.properties:/tmp/conf.properties
       - ./prometheus:/tmp/prometheus
+
+  connect-cloud:
+    build: ./connect
+    hostname: connect-cloud
+    container_name: connect-cloud
+    ports:
+      - "8084:8083"
+    environment:
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_BOOTSTRAP_SERVERS: ${CCLOUD_CLUSTER}
+      CONNECT_SECURITY_PROTOCOL: SASL_SSL
+      CONNECT_SASL_MECHANISM: PLAIN
+      CONNECT_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="${CLUSTER_API_KEY}" password="${CLUSTER_API_SECRET}";
+      CONNECT_REQUEST_TIMEOUT_MS: 20000
+      CONNECT_RETRY_BACKOFF_MS: 500
+
+      CONNECT_PRODUCER_BOOTSTRAP_SERVERS: ${CCLOUD_CLUSTER}
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: SASL_SSL
+      CONNECT_PRODUCER_SASL_MECHANISM: PLAIN
+      CONNECT_PRODUCER_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="${CLUSTER_API_KEY}" password="${CLUSTER_API_SECRET}";
+      CONNECT_PRODUCER_REQUEST_TIMEOUT_MS: 20000
+      CONNECT_PRODUCER_RETRY_BACKOFF_MS: 500
+
+      CONNECT_CONSUMER_REQUEST_TIMEOUT_MS: 20000
+      CONNECT_CONSUMER_BOOTSTRAP_SERVERS: ${CCLOUD_CLUSTER}
+      CONNECT_CONSUMER_SECURITY_PROTOCOL: SASL_SSL
+      CONNECT_CONSUMER_SASL_MECHANISM: PLAIN
+      CONNECT_CONSUMER_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="${CLUSTER_API_KEY}" password="${CLUSTER_API_SECRET}";
+
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: connect-statuses
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_GROUP_ID: connect-cluster
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_REST_EXTENSION_CLASSES: io.confluent.connect.replicator.monitoring.ReplicatorMonitoringExtension
+      CONNECT_CONNECTOR_CLIENT_CONFIG_OVERRIDE_POLICY: All
+    volumes:
+      - ./data:/tmp
+      - ./connect/jars/:/etc/kafka-connect/jars/
+
+  kafka-streams-cloud:
+    build: ./kafka-streams-app
+    hostname: kafka-streams-cloud
+    container_name: kafka-streams-cloud
+    restart: on-failure
+    ports:
+      - "2113:2112"
+    environment:
+      CCLOUD_CLUSTER: ${CCLOUD_CLUSTER}
+      CLUSTER_API_KEY: ${CLUSTER_API_KEY}
+      CLUSTER_API_SECRET: ${CLUSTER_API_SECRET}
+    volumes:
+      - ./kafka-streams-cloud-cluster.properties:/tmp/conf.properties
+      - ./prometheus:/tmp/prometheus
