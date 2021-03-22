@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -e
+
+SOURCE_CONNECT_CONFIG=`kafka-console-consumer --timeout-ms 1000 --bootstrap-server localhost:19092 --topic docker-connect-configs --property print.key=true --property 'key.separator=|' --from-beginning | grep 'connector-source'  | tail -n 1`
+SOURCE_CONNECT_OFFSET=`kafka-console-consumer --timeout-ms 1000 --bootstrap-server localhost:19092 --topic docker-connect-offsets --property print.key=true --property 'key.separator=|' --from-beginning | grep 'connector-source'  | tail -n 1`
+
+curl -X DELETE localhost:8083/connectors/connector-source -H 'Content-Type:application/json'
+
+# Wait for Kafka Streams lag to reach 0
+until `docker-compose exec broker kafka-consumer-groups --describe --bootstrap-server localhost:9092 --group streams-wordcount  | grep 'streams-wordcount-' | awk '{ print $6 }' | grep -v '0' | wc -l` == '0'; do
+  sleep 5
+done
+
+# Wait for Kafka Streams lag to reach 0
+# TODO Check Consumer Lag with EoS
+# EoS could return lag of 0 or 1 due to the commit mark
+until `docker-compose exec broker kafka-consumer-groups --describe --bootstrap-server localhost:9092 --group streams-wordcount  | grep 'streams-wordcount-' | awk '{ print $6 }' | grep -v '0|1' | wc -l` == '0'; do
+  sleep 5
+done
+
+
+# Delete connectors
+curl -X DELETE localhost:8083/connectors/connector-sink -H 'Content-Type:application/json'
+
+# Stop Kafka Streams
+docker-compose stop kafka-streams

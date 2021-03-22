@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+# To clean up previous state
+docker-compose down -v
+
+docker-compose up -d zookeeper
+docker-compose up -d broker
+docker-compose up -d connect
+
+until curl -X 'POST' 'http://localhost:8083/connectors/' --data @connect/file-source-connector.json -H 'Content-Type:application/json'; do
+  sleep 5
+done
+echo
+
+curl -X 'POST' 'http://localhost:8083/connectors/' --data @connect/file-sink-connector.json -H 'Content-Type:application/json'
+
+docker-compose up -d kafka-streams

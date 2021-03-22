@@ -1,0 +1,12 @@
+{
+  "name": "connector-sink",
+  "config": {
+    "connector.class" : "org.apache.kafka.connect.file.FileStreamSinkConnector",
+    "tasks.max" : 1,
+    "topics" : "streams-wordcount-output",
+    "file" : "/tmp/sink.txt",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "consumer.override.isolation.level": "read_committed"
+  }
+}
