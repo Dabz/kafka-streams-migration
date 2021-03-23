@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Cleaning Confluent Cloud cluster"
-for i in streams-wordcount-counts-store-changelog  streams-wordcount-counts-store-repartition  streams-wordcount-output  streams-plaintext-input connect-configs  connect-offsets  connect-statuses; do
+for i in streams-wordcount-counts-store-changelog  streams-wordcount-counts-store-repartition  streams-wordcount-output  streams-plaintext-input migration-demo-connect-configs  migration-demo-connect-offsets  migration-demo-connect-statuses; do
   ccloud kafka topic delete $i;
 done
 
@@ -70,12 +70,12 @@ for line in `docker-compose exec broker kafka-console-consumer --timeout-ms 1500
   if [[ "$line" =~ 'PAUSED' ]]; then
     continue;
   fi
-  docker-compose exec -e "msg=$line" broker bash -c "echo \"\$msg\" | kafka-console-producer --broker-list $CCLOUD_CLUSTER  --topic connect-configs --property 'parse.key=true' --property 'key.separator=|' --producer-property \"sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule   required username='$CLUSTER_API_KEY' password='$CLUSTER_API_SECRET';\" --producer-property \"security.protocol=SASL_SSL\" --producer-property \"sasl.mechanism=PLAIN\""
+  docker-compose exec -e "msg=$line" broker bash -c "echo \"\$msg\" | kafka-console-producer --broker-list $CCLOUD_CLUSTER  --topic migration-demo-connect-configs --property 'parse.key=true' --property 'key.separator=|' --producer-property \"sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule   required username='$CLUSTER_API_KEY' password='$CLUSTER_API_SECRET';\" --producer-property \"security.protocol=SASL_SSL\" --producer-property \"sasl.mechanism=PLAIN\""
 done
 
 echo Copying connector-source and connector-sink offsets to kafka
 for line in `docker-compose exec broker kafka-console-consumer --timeout-ms 5000 --bootstrap-server localhost:19092 --topic docker-connect-offsets --property print.key=true --property 'key.separator=|' --from-beginning | grep 'connector-source'  | tail -n 1`; do
-  docker-compose exec -e "msg=$line" broker bash -c "echo \"\$msg\" | kafka-console-producer --broker-list $CCLOUD_CLUSTER  --topic connect-offsets --property 'parse.key=true' --property 'key.separator=|' --producer-property \"sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule   required username='$CLUSTER_API_KEY' password='$CLUSTER_API_SECRET';\" --producer-property \"security.protocol=SASL_SSL\" --producer-property \"sasl.mechanism=PLAIN\""
+  docker-compose exec -e "msg=$line" broker bash -c "echo \"\$msg\" | kafka-console-producer --broker-list $CCLOUD_CLUSTER  --topic migration-demo-connect-offsets --property 'parse.key=true' --property 'key.separator=|' --producer-property \"sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule   required username='$CLUSTER_API_KEY' password='$CLUSTER_API_SECRET';\" --producer-property \"security.protocol=SASL_SSL\" --producer-property \"sasl.mechanism=PLAIN\""
 done
 
 echo Restarting Kafka Connect with
