@@ -4,6 +4,7 @@
 
 - Replicator must be configured with `isolation.level=read_committed`
 - Data must be extracted from the topics `connect-configs` and `connect-offsets` in order to migrate connectors
+- Migrated application need to be restarted with `auto.offset.reset=latest`
 
 ## Process
 
@@ -22,24 +23,21 @@
   * Start connector
   * Start producers
 
-[![Process](./images/process.png)](http://www.plantuml.com/plantuml/uml/bLCzRzj03DtrAuXCyP8Vu21eYYvTsg6PEXNi7MsnEHq5acV1AFBV6-aYvAoWWsym33v-lFT8FPgZUXbIPy-SHrGSeCSS9sLtok1Qg86inoWJvsC5bkBk5N9sbWmtJouZ1CcPWelUmDyENj_Uvl2e4aiWjVicQ58qq7l92WOPpnz1C4UdcfB5QGzMGWzey2V-3jtB9HKb7037CN709MPzyIXJNdbDFIU2syzDobSqI7Zyj0CskFr9jkjWUVi9sUjaol6jyhlisaPFd9zNjj1VtQbnfMcqU7AXx1iVjR9T_BSgfrOsMkwN87aP0NEikV23AYuwmzN3YRq7DabBsLsY4wK79Oo_WWm3EyLMv7k7wytQRcZ-duyNEv8CNvAKsDmEgczrhSe-dCWRA2TIvKWhBeU3aLj56zMZqecbM3g3uOaYS3v8C_U_zxdrTRknxQ1Au4vf_XqbSJW_97GoRwQrdyXBD--pUwGSov3-0G00)
+[![Process](./images/process.png)](http://www.plantuml.com/plantuml/uml/dLF1Rjim3BtxAuYUcai_84Mn3jrXbst0SXXs6ZIBYRdAea1I2O9X_pxLib75mGwhOHW67_dq7aazgZcnF8PEdoac9sw4mKL_4ZB322OP6qW7v_b4yL21Rghk2cPan15kTiO9UeuHUsEvWTyTb6SxXPEmppsAtZT1vImzlfOiu1EdypK8QiwmfaGstC8kzmCuXL_-Pz_zwIwr21RDBgL0lPjYEcGh1k8Yx3HGGBXztwHyB6J17TvjW1HklwDkIkOawPiZgqTZz7FbPzwqH3kApujS6Dx2jBIb4BLDMLdxH0UfSgS9QFLJInipzrCGBITmqTTS-8eLPodmtCKJsG2a7AQoku1730-2pl_eUHp9qBSkNndUrAtj1mne2D88MK_kvJyUBcPNtgV0sJTBLRBMTYySyNwlQ7U2Bz_49U_yK2oYsio0bgzNSDx0BqSK8OyBNidqwf0aU2JE6iwWxeWUAEwvKVZF5LyFPZtp_tOpiJIth3IrK-FKFMBqUGn_0G00)
 
 ## How to run the example
 
 ```sh
-export CCLOUD_CLUSTER=pkc-xxxx.europe-west1.gcp.confluent.cloud:9092
+export CCLOUD_CLUSTER=XXXXX.confluent.cloud:9092
 export CLUSTER_API_KEY=XXXXX
 export CLUSTER_API_SECRET=XXXXX
 
 # Start the local environment, the connectors and Kafka Streams
 ./up
-echo "toto tata" >> data/source.txt
-sleep 10
-cat data/sink.txt
 
 # Migrate Kafka Streams and connectors to Confluent Cloud
 ./migrate
-echo "toto tata" >> data/source.txt
+echo "World" >> data/source.txt
 sleep 10
 cat data/sink.txt
 ````
