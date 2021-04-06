@@ -6,6 +6,7 @@
     "value.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
     "src.kafka.request.timeout.ms": "20000",
     "src.kafka.bootstrap.servers": "broker:29092",
+    "src.kafka.isolation.level": "read_committed",
     "dest.kafka.ssl.endpoint.identification.algorithm": "https",
     "dest.kafka.sasl.mechanism": "PLAIN",
     "dest.kafka.request.timeout.ms": "20000",
@@ -15,7 +16,6 @@
     "dest.kafka.security.protocol": "SASL_SSL",
     "dest.topic.replication.factor": "3",
     "topic.regex": "streams-.*",
-    "offset.topic.commit": true,
-    "dest.kafka.isolation.level": "read_committed"
+    "offset.topic.commit": true
   }
 }
