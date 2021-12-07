@@ -1,8 +1,12 @@
 #!/bin/bash
 
 echo "Cleaning Confluent Cloud cluster"
-for i in streams-wordcount-counts-store-changelog  streams-wordcount-counts-store-repartition  streams-wordcount-output  streams-plaintext-input migration-demo-connect-configs  migration-demo-connect-offsets  migration-demo-connect-statuses; do
-  ccloud kafka topic delete $i;
+for i in cloud-wordcount-counts-store-changelog  cloud-wordcount-counts-store-repartition  streams-plaintext-output  streams-plaintext-input  migration-demo-connect-configs  migration-demo-connect-offsets  migration-demo-connect-statuses  _confluent-command; do
+  confluent kafka topic delete $i;
+done
+
+for i in cloud-wordcount-counts-store-changelog  cloud-wordcount-counts-store-repartition  streams-plaintext-output  streams-plaintext-input ; do
+  confluent kafka topic create $i;
 done
 
 set -e
@@ -12,7 +16,7 @@ curl -s -f -X PUT http://localhost:8083/connectors/connector-source/pause -H 'Co
 
 echo Wait for Kafka Streams lag to reach 0
 # EoS could return lag of 0 or 1 due to the commit mark
-until [[ `docker-compose exec broker kafka-consumer-groups --describe --bootstrap-server localhost:19092 --group streams-wordcount  | grep 'streams-wordcount-' | awk '{ print $6 }' | grep -v '0' | grep -v '1' | wc -l | sed -e 's/^[[:space:]]*//'` -eq 0 ]]; do
+until [[ `docker-compose exec broker kafka-consumer-groups --describe --bootstrap-server localhost:19092 --group streams-wordcount  | grep 'streams-wordcount-' | awk '{ print $6 }' | grep -v '0' | grep -v '1' | grep -v '-' | wc -l | sed -e 's/^[[:space:]]*//'` -eq 0 ]]; do
   echo -n .
   sleep 5
 done

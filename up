@@ -19,13 +19,13 @@ echo
 echo Starting with hello world in data/source.txt
 echo "Hello world" > data/source.txt
 cat data/source.txt
+echo "" > data/sink.txt
+
+echo Creating file sink connector reading streams-wordcount-output topic and writing to data/sink.txt
+curl -s -f -X 'POST' 'http://localhost:8083/connectors/' --data @connect/file-sink-connector.json -H 'Content-Type:application/json' | jq .
 
 echo Creating file source connector reading from data/source.txt and sending lines to streams-plaintext-input
 curl -s -f -X 'POST' 'http://localhost:8083/connectors/' --data @connect/file-source-connector.json -H 'Content-Type:application/json' | jq .
-
-echo "" > data/sink.txt
-echo Creating file sink connector reading streams-wordcount-output topic and writing to data/sink.txt
-curl -s -f -X 'POST' 'http://localhost:8083/connectors/' --data @connect/file-sink-connector.json -H 'Content-Type:application/json' | jq .
 
 echo Launching EOS based kafka streams with states stores that counts words
 docker-compose up -d kafka-streams

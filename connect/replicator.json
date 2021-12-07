@@ -16,6 +16,13 @@
     "dest.kafka.security.protocol": "SASL_SSL",
     "dest.topic.replication.factor": "3",
     "topic.regex": "streams-.*",
-    "offset.topic.commit": true
+    "topic.blacklist": "streams-wordcount-counts-store-repartition",
+    "offset.topic.commit": true,
+    "transforms":"renamePrefix",
+    "transforms.renamePrefix.type":"org.apache.kafka.connect.transforms.RegexRouter",
+    "transforms.renamePrefix.regex":"streams-wordcount-(.*)",
+    "transforms.renamePrefix.replacement":"cloud-wordcount-$1",
+    "topic.preserve.partitions": true,
+    "topic.auto.create": false
   }
 }
