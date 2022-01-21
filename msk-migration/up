@@ -1,0 +1,20 @@
+#!/bin/bash
+
+docker build -t connect:latest .
+(cd ../kafka-streams-app/ && docker build -t app:latest .)
+timeout 10 kind load docker-image app:latest
+timeout 10 kind load docker-image connect:latest
+
+kubectl create configmap msk-app-config --from-file=configmaps/msk.properties
+kubectl create configmap cloud-app-config --from-file=configmaps/cloud.properties
+
+helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/ 
+helm repo update
+helm install confluentinc/cp-helm-charts --name migration -f values.yaml 
+
+sleep 30
+
+kubectl port-forward service/migration-cp-kafka-connect 8083:8083 &
+curl -X PUT -H 'Content-Type:application/json' http://localhost:8083/connectors/replicator/config --data @connectors/replicator.json
+
+kubectl apply -f app-pod.yaml

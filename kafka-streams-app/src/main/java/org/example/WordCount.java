@@ -57,7 +57,11 @@ public class WordCount {
             props.load(new FileInputStream(args[0]));
         }
 
-        if (props.getProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG).contains("CCLOUD_CLUSTER")) {
+        if (props.getProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG).contains("MSK_CLUSTER") || System.getenv("CLUSTER_TYPE").equals("MSK")) {
+	    props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, System.getenv("MSK_BOOTSTRAP_SERVERS"));
+	}
+
+        if (props.getProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG).contains("CCLOUD_CLUSTER") || System.getenv("CLUSTER_TYPE").equals("CCLOUD")) {
             String jaas = props.getProperty(SaslConfigs.SASL_JAAS_CONFIG);
             jaas = jaas.replaceAll("CLUSTER_API_KEY", System.getenv("CLUSTER_API_KEY"));
             jaas = jaas.replaceAll("CLUSTER_API_SECRET", System.getenv("CLUSTER_API_SECRET"));

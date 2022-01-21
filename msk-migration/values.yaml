@@ -1,0 +1,73 @@
+cp-zookeeper:
+  enabled: false
+cp-kafka:
+  enabled: false
+cp-schema-registry:
+  enabled: false
+cp-kafka-rest:
+  enabled: false
+
+## ------------------------------------------------------
+## Kafka Connect
+## ------------------------------------------------------
+cp-kafka-connect:
+  enabled: true
+  kafka:
+    bootstrapServers: FILLME
+  configurationOverrides:
+    bootstrap.servers: FILLME
+    key.converter: org.apache.kafka.connect.storage.StringConverter
+    value.converter: io.confluent.connect.avro.AvroConverter
+    ssl.endpoint.identification.algorithm: https
+    security.protocol: SASL_SSL
+    sasl.mechanism: PLAIN
+    sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="FILLME" password="FILLME";'
+    request.timeout.ms: 20000
+    retry.backoff.ms: 500
+    producer.bootstrap.servers: FILLME
+    producer.ssl.endpoint.identification.algorithm: https
+    producer.security.protocol: SASL_SSL
+    producer.sasl.mechanism: PLAIN
+    producer.sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="FILLME" password="FILLME";'
+    producer.request.timeout.ms: 20000
+    producer.retry.backoff.ms: 500
+    consumer.bootstrap.servers: FILLME
+    consumer.ssl.endpoint.identification.algorithm: https
+    consumer.security.protocol: SASL_SSL
+    consumer.sasl.mechanism: PLAIN
+    consumer.sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="FILLME" password="FILLME";'
+    consumer.request.timeout.ms: 20000
+    consumer.retry.backoff.ms: 500
+    offset.flush.interval.ms: 10000
+    offset.storage.file.filename: /tmp/connect.offsets
+    group.id: connect-cluster
+    offset.storage.topic: msk-connect-offsets
+    offset.storage.replication.factor: 3
+    offset.storage.partitions: 3
+    config.storage.topic: msk-connect-configs
+    config.storage.replication.factor: 3
+    status.storage.topic: msk-connect-status
+    status.storage.replication.factor: 3
+    rest.extension.classes: io.confluent.connect.replicator.monitoring.ReplicatorMonitoringExtension
+
+  image: connect
+  imageTag: latest
+  ## Optionally specify an array of imagePullSecrets. Secrets must be manually created in the namespace.
+  ## https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
+  imagePullSecrets:
+  #  - name: "regcred"
+  heapOptions: "-Xms512M -Xmx512M"
+  resources: {}
+  ## If you do want to specify resources, uncomment the following lines, adjust them as necessary,
+  ## and remove the curly braces after 'resources:'
+  #  limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  #  requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+cp-ksql-server:
+  enabled: false
+cp-control-center:
+  enabled: false

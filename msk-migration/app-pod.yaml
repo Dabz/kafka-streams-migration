@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+spec:
+  containers:
+    - name: app
+      image: app:latest
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+      - name: app-config
+        mountPath: /tmp/conf.properties
+      env:
+        - name: MSK_BOOTSTRAP_SERVERS
+          value: b-3.damien-cluster.7mzb6l.c2.kafka.eu-west-3.amazonaws.com:9092,b-1.damien-cluster.7mzb6l.c2.kafka.eu-west-3.amazonaws.com:9092,b-2.damien-cluster.7mzb6l.c2.kafka.eu-west-3.amazonaws.com:9092
+        - name: CLUSTER_TYPE
+          value: MSK
+  volumes:
+    - name: app-config
+      configMap:
+        name: msk-app-config
+
