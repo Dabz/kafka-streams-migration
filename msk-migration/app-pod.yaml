@@ -7,9 +7,12 @@ spec:
     - name: app
       image: app:latest
       imagePullPolicy: IfNotPresent
+      command: ["java", "-javaagent:/tmp/prometheus/jmx_prometheus_javaagent-0.15.0.jar=2112:/tmp/prometheus/kafka-streams-prometheus.yaml", "-jar", "target/kafka-streams-app-1.0-SNAPSHOT-jar-with-dependencies.jar", "/tmp/conf/msk.properties"]
       volumeMounts:
       - name: app-config
-        mountPath: /tmp/conf.properties
+        mountPath: /tmp/conf
+      - name: app-prometheus
+        mountPath: /tmp/prometheus
       env:
         - name: MSK_BOOTSTRAP_SERVERS
           value: b-3.damien-cluster.7mzb6l.c2.kafka.eu-west-3.amazonaws.com:9092,b-1.damien-cluster.7mzb6l.c2.kafka.eu-west-3.amazonaws.com:9092,b-2.damien-cluster.7mzb6l.c2.kafka.eu-west-3.amazonaws.com:9092
@@ -19,4 +22,7 @@ spec:
     - name: app-config
       configMap:
         name: msk-app-config
+    - name: app-prometheus
+      configMap:
+        name: app-prometheus
 

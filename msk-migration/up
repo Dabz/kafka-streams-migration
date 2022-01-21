@@ -1,5 +1,8 @@
 #!/bin/bash
 
+kafka-topics --bootstrap-server $MSK_CLUSTER --topic streams-plaintext-input --replication-factor 3 --partitions 10 --create
+kafka-topics --bootstrap-server $MSK_CLUSTER --topic streams-plaintext-output --replication-factor 3 --partitions 10 --create
+
 docker build -t connect:latest .
 (cd ../kafka-streams-app/ && docker build -t app:latest .)
 timeout 10 kind load docker-image app:latest
@@ -7,6 +10,7 @@ timeout 10 kind load docker-image connect:latest
 
 kubectl create configmap msk-app-config --from-file=configmaps/msk.properties
 kubectl create configmap cloud-app-config --from-file=configmaps/cloud.properties
+kubectl create configmap app-prometheus --from-file=../prometheus/
 
 helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/ 
 helm repo update
@@ -18,3 +22,5 @@ kubectl port-forward service/migration-cp-kafka-connect 8083:8083 &
 curl -X PUT -H 'Content-Type:application/json' http://localhost:8083/connectors/replicator/config --data @connectors/replicator.json
 
 kubectl apply -f app-pod.yaml
+
+echo "Hello World" | kafka-console-producer --broker-list $MSK_CLUSTER --topic streams-plaintext-input

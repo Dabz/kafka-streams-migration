@@ -19,7 +19,7 @@
 	"header.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
 	"schema.registry.client.basic.auth.credentials.source": "USER_INFO",
 	"provenance.header.enable": "true",
-	"topic.whitelist": "damien-migration",
+	"topic.whitelist": "streams-plaintext-input,streams-plaintext-output,streams-plaintext-input,app-migration-counts-store-changelog",
 	"producer.override.enable.idempotence": "true",
 	"producer.override.acks": "all",
 	"producer.override.delivery.timeout.ms": "24000",
