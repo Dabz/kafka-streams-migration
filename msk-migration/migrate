@@ -1,0 +1,42 @@
+#!/bin/bash
+
+require_command() {
+    for var in "$@"; do
+        if which $var 2>&1 > /dev/null; then
+            continue
+        fi
+        echo "$var is missing"
+        exit 1
+    done
+
+}
+
+require_env() {
+    for var in "$@"; do
+        if printenv $var 2>&1 > /dev/null; then
+            continue
+        fi
+        echo "$var env variable is missing"
+        exit 1
+    done
+
+}
+
+require_command kubectl curl docker
+require_env CCLOUD_JAAS CCLOUD_BOOTSTRAP_SERVER
+
+echo Waiting for Replicator to finish replicator
+until [[ `kubectl exec -it deploy/migration-cp-kafka-connect -c  cp-kafka-connect-server -- curl -s -f http://localhost:8084/WorkerMetrics/replicator | jq '.tasks[].metrics[].messageLag' | awk '{sum=sum+$0} END{print sum}'` -eq '0' ]]; do
+  echo -n .
+  sleep 5
+done
+echo
+
+echo Stop Kafka Streams
+kubectl delete pod app
+
+echo Stop replicator
+kubectl exec -it deploy/migration-cp-kafka-connect -c cp-kafka-connect-server -- curl -s -f -X DELETE localhost:8084/connectors/replicator
+
+echo Start Kafka Streams on CCLoud
+kubectl delete pod app

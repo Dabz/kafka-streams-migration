@@ -1,26 +1,71 @@
 #!/bin/bash
 
-kafka-topics --bootstrap-server $MSK_CLUSTER --topic streams-plaintext-input --replication-factor 3 --partitions 10 --create
-kafka-topics --bootstrap-server $MSK_CLUSTER --topic streams-plaintext-output --replication-factor 3 --partitions 10 --create
+require_command() {
+    for var in "$@"; do
+        if which $var 2>&1 > /dev/null; then
+            continue
+        fi
+        echo "$var is missing"
+        exit 1
+    done
 
+}
+
+require_env() {
+    for var in "$@"; do
+        if printenv $var 2>&1 > /dev/null; then
+            continue
+        fi
+        echo "$var env variable is missing"
+        exit 1
+    done
+
+}
+
+echo Checking requirements
+require_command kind kubectl helm curl docker kafka-topics
+require_env MSK_CLUSTER
+require_env CCLOUD_BOOTSTRAP_SERVER CCLOUD_CLUSTER_API_KEY CCLOUD_CLUSTER_API_SECRET
+rm -rf tmp; mkdir -p tmp
+cp -r configmaps tmp/configmaps
+sed -i s/CLUSTER_BOOTSTRAP_SERVER/$CCLOUD_BOOTSTRAP_SERVER/ tmp/configmaps/cloud.properties 
+sed -i s/CLUSTER_API_KEY/$CCLOUD_CLUSTER_API_KEY/           tmp/configmaps/cloud.properties 
+sed -i s~CLUSTER_API_SECRET~$CCLOUD_CLUSTER_API_SECRET~     tmp/configmaps/cloud.properties 
+cp ./values.yaml tmp/values.yaml
+sed -i s/CLUSTER_BOOTSTRAP_SERVER/$CCLOUD_BOOTSTRAP_SERVER/ tmp/values.yaml 
+sed -i s/CLUSTER_API_KEY/$CCLOUD_CLUSTER_API_KEY/           tmp/values.yaml 
+sed -i s~CLUSTER_API_SECRET~$CCLOUD_CLUSTER_API_SECRET~     tmp/values.yaml 
+
+echo Creating Kind Kubernetes cluster
+if [ "kind" != "`kind get clusters`" ]; then
+    kind create cluster --name kind
+fi
+
+echo Creating topics on MSK
+kafka-topics --bootstrap-server $MSK_CLUSTER --topic streams-plaintext-input --replication-factor 3 --partitions 10 --create --if-not-exists
+kafka-topics --bootstrap-server $MSK_CLUSTER --topic streams-plaintext-output --replication-factor 3 --partitions 10 --create --if-not-exists
+
+echo Building images
 docker build -t connect:latest .
 (cd ../kafka-streams-app/ && docker build -t app:latest .)
-timeout 10 kind load docker-image app:latest
-timeout 10 kind load docker-image connect:latest
+kind load docker-image app:latest
+kind load docker-image connect:latest
 
-kubectl create configmap msk-app-config --from-file=configmaps/msk.properties
-kubectl create configmap cloud-app-config --from-file=configmaps/cloud.properties
+echo Installing Kafka Connect with cp-helm-charts
+kubectl create configmap msk-app-config --from-file=tmp/configmaps/msk.properties
+kubectl create configmap cloud-app-config --from-file=tmp/configmaps/cloud.properties
 kubectl create configmap app-prometheus --from-file=../prometheus/
 
 helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/ 
 helm repo update
-helm install confluentinc/cp-helm-charts --name migration -f values.yaml 
+helm install migration confluentinc/cp-helm-charts -f tmp/values.yaml 
 
-sleep 30
-
-kubectl port-forward service/migration-cp-kafka-connect 8083:8083 &
-curl -X PUT -H 'Content-Type:application/json' http://localhost:8083/connectors/replicator/config --data @connectors/replicator.json
-
+echo Deploying Kafka Streams application
 kubectl apply -f app-pod.yaml
-
 echo "Hello World" | kafka-console-producer --broker-list $MSK_CLUSTER --topic streams-plaintext-input
+
+echo Deploying Replicator
+sleep 60
+kubectl exec -it deploy/migration-cp-kafka-connect -c  cp-kafka-connect-server -- curl -X PUT -H 'Content-Type:application/json' http://localhost:8083/connectors/replicator/config --data "$(cat connectors/replicator.json)"
+
+echo Done

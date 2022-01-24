@@ -13,29 +13,29 @@ cp-kafka-rest:
 cp-kafka-connect:
   enabled: true
   kafka:
-    bootstrapServers: FILLME
+    bootstrapServers: CLUSTER_BOOTSTRAP_SERVER
   configurationOverrides:
-    bootstrap.servers: FILLME
+    bootstrap.servers: CLUSTER_BOOTSTRAP_SERVER
     key.converter: org.apache.kafka.connect.storage.StringConverter
     value.converter: io.confluent.connect.avro.AvroConverter
     ssl.endpoint.identification.algorithm: https
     security.protocol: SASL_SSL
     sasl.mechanism: PLAIN
-    sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="FILLME" password="FILLME";'
+    sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="CLUSTER_API_KEY" password="CLUSTER_API_SECRET";'
     request.timeout.ms: 20000
     retry.backoff.ms: 500
-    producer.bootstrap.servers: FILLME
+    producer.bootstrap.servers: pkc-4r297.europe-west1.gcp.confluent.cloud:9092
     producer.ssl.endpoint.identification.algorithm: https
     producer.security.protocol: SASL_SSL
     producer.sasl.mechanism: PLAIN
-    producer.sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="FILLME" password="FILLME";'
+    producer.sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="CLUSTER_API_KEY" password="CLUSTER_API_SECRET";'
     producer.request.timeout.ms: 20000
     producer.retry.backoff.ms: 500
-    consumer.bootstrap.servers: FILLME
+    consumer.bootstrap.servers: CLUSTER_BOOTSTRAP_SERVER
     consumer.ssl.endpoint.identification.algorithm: https
     consumer.security.protocol: SASL_SSL
     consumer.sasl.mechanism: PLAIN
-    consumer.sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="FILLME" password="FILLME";'
+    consumer.sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="CLUSTER_API_KEY" password="CLUSTER_API_SECRET";'
     consumer.request.timeout.ms: 20000
     consumer.retry.backoff.ms: 500
     offset.flush.interval.ms: 10000
